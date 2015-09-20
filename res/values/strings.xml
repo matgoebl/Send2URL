@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">Send2URL</string>
+	<string name="prefsactivity">Send2URL Settings</string>
+	<string name="sendingactivity">Sending to URL...</string>
+	<string name="EnterServerURL">Enter the server URL</string>
+	<string name="ServerURL">Set server URL</string>
+	<string name="ServerURLDefault">https://user:pass@server.example.com:1234/path/</string>
+	<string name="SendSuccess">Successfully sent to URL</string>
+	<string name="SendFailed">Error sending to URL</string>
+	<string name="About">About</string>
+	<string name="AboutInfo">
+	This app adds an entry to the android share menu.
+	When you share any content (e.g. a picture from the gallery) with "Send2URL" it will be uploaded to the configured server URL using a HTTP POST request.
+	</string>
+</resources>
