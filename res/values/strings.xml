@@ -8,6 +8,7 @@
 	<string name="ServerURLDefault">https://user:pass@server.example.com:1234/path/</string>
 	<string name="SendSuccess">Successfully sent to URL</string>
 	<string name="SendFailed">Error sending to URL</string>
+	<string name="UnknownType">Unknown content type</string>
 	<string name="About">About</string>
 	<string name="AboutInfo">
 	This app adds an entry to the android share menu.

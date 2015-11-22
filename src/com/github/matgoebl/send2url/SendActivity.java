@@ -1,5 +1,6 @@
 package com.github.matgoebl.send2url;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -32,20 +33,32 @@ public class SendActivity extends Activity
 		Intent intent = getIntent();
 		if (intent != null && intent.getAction().equals(Intent.ACTION_SEND)) {
 			Bundle extras = intent.getExtras();
-			if(extras != null && extras.containsKey(Intent.EXTRA_STREAM)) {
-				Uri uri = (Uri) extras.getParcelable(Intent.EXTRA_STREAM);
-				ContentResolver contentResolver = getContentResolver();
-				try {
-					InputStream stream = contentResolver.openInputStream(uri);
-					httpPost( serverUrl,stream);
-					Toast.makeText(getBaseContext(), getString(R.string.SendSuccess),
-							Toast.LENGTH_LONG).show();
-					setResult(Activity.RESULT_OK);
-				} catch (Exception e) {
-					Toast.makeText(getBaseContext(), getString(R.string.SendFailed) + ":\n" + e.toString(),
+			try {
+				InputStream stream;
+				if (intent.getType().equals("text/plain")) {
+					stream = new ByteArrayInputStream(
+						intent.getStringExtra(Intent.EXTRA_TEXT).getBytes()
+					);
+				} else if(extras != null && extras.containsKey(Intent.EXTRA_STREAM)) {
+					Uri uri = (Uri) extras.getParcelable(Intent.EXTRA_STREAM);
+					ContentResolver contentResolver = getContentResolver();
+					stream = contentResolver.openInputStream(uri);
+				} else {
+					Toast.makeText(getBaseContext(), getString(R.string.UnknownType),
 							Toast.LENGTH_LONG).show();
 					setResult(Activity.RESULT_CANCELED);
+					finish();
+					return;
 				}
+
+				httpPost(serverUrl, stream);
+				Toast.makeText(getBaseContext(), getString(R.string.SendSuccess),
+						Toast.LENGTH_LONG).show();
+				setResult(Activity.RESULT_OK);
+			} catch (Exception e) {
+				Toast.makeText(getBaseContext(), getString(R.string.SendFailed) + ":\n" + e.toString(),
+						Toast.LENGTH_LONG).show();
+				setResult(Activity.RESULT_CANCELED);
 			}
 		}
 		finish();
