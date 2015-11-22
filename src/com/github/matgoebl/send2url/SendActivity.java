@@ -51,7 +51,7 @@ public class SendActivity extends Activity
 					return;
 				}
 
-				httpPost(serverUrl, stream);
+				httpPost(serverUrl, stream, intent.getType());
 				Toast.makeText(getBaseContext(), getString(R.string.SendSuccess),
 						Toast.LENGTH_LONG).show();
 				setResult(Activity.RESULT_OK);
@@ -64,7 +64,7 @@ public class SendActivity extends Activity
 		finish();
 	}
 
-	public static void httpPost(String serverUrl, InputStream dataStream) throws ClientProtocolException, IOException, Exception  {
+	public static void httpPost(String serverUrl, InputStream dataStream, String type) throws ClientProtocolException, IOException, Exception  {
 		DefaultHttpClient httpclient = new DefaultHttpClient();
 		HttpPost httppost = new HttpPost(serverUrl);
 
@@ -73,9 +73,12 @@ public class SendActivity extends Activity
 		if( userInfo != null ) {
 			httppost.addHeader("Authorization", "Basic " + Base64.encodeToString(userInfo.getBytes(), Base64.NO_WRAP));
 		}
+		if (type == null) {
+			type = "binary/octet-stream";
+		}
 
 		InputStreamEntity requestEntity = new InputStreamEntity(dataStream,-1);
-		requestEntity.setContentType("binary/octet-stream");
+		requestEntity.setContentType(type);
 		requestEntity.setChunked(true);
 		httppost.setEntity(requestEntity);
 
