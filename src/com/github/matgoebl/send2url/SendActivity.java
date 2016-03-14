@@ -1,5 +1,6 @@
 package com.github.matgoebl.send2url;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -32,26 +33,38 @@ public class SendActivity extends Activity
 		Intent intent = getIntent();
 		if (intent != null && intent.getAction().equals(Intent.ACTION_SEND)) {
 			Bundle extras = intent.getExtras();
-			if(extras != null && extras.containsKey(Intent.EXTRA_STREAM)) {
-				Uri uri = (Uri) extras.getParcelable(Intent.EXTRA_STREAM);
-				ContentResolver contentResolver = getContentResolver();
-				try {
-					InputStream stream = contentResolver.openInputStream(uri);
-					httpPost( serverUrl,stream);
-					Toast.makeText(getBaseContext(), getString(R.string.SendSuccess),
-							Toast.LENGTH_LONG).show();
-					setResult(Activity.RESULT_OK);
-				} catch (Exception e) {
-					Toast.makeText(getBaseContext(), getString(R.string.SendFailed) + ":\n" + e.toString(),
+			try {
+				InputStream stream;
+				if (intent.getType().equals("text/plain")) {
+					stream = new ByteArrayInputStream(
+						intent.getStringExtra(Intent.EXTRA_TEXT).getBytes()
+					);
+				} else if(extras != null && extras.containsKey(Intent.EXTRA_STREAM)) {
+					Uri uri = (Uri) extras.getParcelable(Intent.EXTRA_STREAM);
+					ContentResolver contentResolver = getContentResolver();
+					stream = contentResolver.openInputStream(uri);
+				} else {
+					Toast.makeText(getBaseContext(), getString(R.string.UnknownType),
 							Toast.LENGTH_LONG).show();
 					setResult(Activity.RESULT_CANCELED);
+					finish();
+					return;
 				}
+
+				httpPost(serverUrl, stream, intent.getType());
+				Toast.makeText(getBaseContext(), getString(R.string.SendSuccess),
+						Toast.LENGTH_LONG).show();
+				setResult(Activity.RESULT_OK);
+			} catch (Exception e) {
+				Toast.makeText(getBaseContext(), getString(R.string.SendFailed) + ":\n" + e.toString(),
+						Toast.LENGTH_LONG).show();
+				setResult(Activity.RESULT_CANCELED);
 			}
 		}
 		finish();
 	}
 
-	public static void httpPost(String serverUrl, InputStream dataStream) throws ClientProtocolException, IOException, Exception  {
+	public static void httpPost(String serverUrl, InputStream dataStream, String type) throws ClientProtocolException, IOException, Exception  {
 		DefaultHttpClient httpclient = new DefaultHttpClient();
 		HttpPost httppost = new HttpPost(serverUrl);
 
@@ -60,9 +73,12 @@ public class SendActivity extends Activity
 		if( userInfo != null ) {
 			httppost.addHeader("Authorization", "Basic " + Base64.encodeToString(userInfo.getBytes(), Base64.NO_WRAP));
 		}
+		if (type == null) {
+			type = "binary/octet-stream";
+		}
 
 		InputStreamEntity requestEntity = new InputStreamEntity(dataStream,-1);
-		requestEntity.setContentType("binary/octet-stream");
+		requestEntity.setContentType(type);
 		requestEntity.setChunked(true);
 		httppost.setEntity(requestEntity);
 
